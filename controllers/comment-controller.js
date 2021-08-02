@@ -8,13 +8,30 @@ const commentController = {
             .then(({ _id }) => {
                 return Pizza.findOneAndUpdate(
                     { _id: params.pizzaId },
-                    { $push: { comments: _id } },
+                    { $addToSet: { comments: _id } },
                     { new: true }
                 );
             })
             .then(dbPizzaData => {
                 if (!dbPizzaData) {
                     res.status(404).json({ message: 'No Pizza found with this id!' });
+                    return;
+                }
+                res.json(dbPizzaData);
+            })
+            .catch(err => res.json(err));
+    },
+
+    // add Reply
+    addReply({ params, body }, res) {
+        Comment.findOneAndUpdate(
+            { _id: params.commentId },
+            { $addToSet: { replies: body } },
+            { new: true }
+        )
+            .then(dbPizzaData => {
+                if(!dbPizzaData) {
+                    res.status(400).json({ message: 'No Pizza found with this id!' });
                     return;
                 }
                 res.json(dbPizzaData);
@@ -42,6 +59,17 @@ const commentController = {
                 }
                 res.json(dbPizzaData);
             })
+            .catch(err => res.json(err));
+    },
+
+    // remove Reply
+    removeReply({ params }, res ) {
+        Comment.findOneAndDelete(
+            { _id: params.commentId },
+            { $pull: { replies: { replyId: params.replyId } } },
+            { new: true }
+        )
+            .then(dbPizzaData => res.json(dbPizzaData))
             .catch(err => res.json(err));
     }
 };
